@@ -62,7 +62,7 @@ func (as *AuthService) Register(ctx context.Context, input gographqltwitter.Regi
 	}, nil
 }
 
-func (as *AuthService) Lgoin(ctx context.Context, input gographqltwitter.LoginInput) (gographqltwitter.AuthResponse, error) {
+func (as *AuthService) Login(ctx context.Context, input gographqltwitter.LoginInput) (gographqltwitter.AuthResponse, error) {
 	input.Sanitize()
 
 	if err := input.Validate(); err != nil {
