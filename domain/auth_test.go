@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/daniarmas/gographqltwitter"
+	"github.com/daniarmas/gographqltwitter/faker"
 	"github.com/daniarmas/gographqltwitter/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Register(t *testing.T) {
@@ -119,16 +119,13 @@ func TestAuthService_Login(t *testing.T) {
 	t.Run("can login", func(t *testing.T) {
 		ctx := context.Background()
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
-
 		userRepo := &mocks.UserRepo{}
 
-		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gographqltwitter.User{Email: validInput.Email, Password: string(hashedPassword)}, nil)
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gographqltwitter.User{Email: validInput.Email, Password: faker.Password}, nil)
 
 		service := NewAuthService(userRepo)
 
-		_, err = service.Login(ctx, validInput)
+		_, err := service.Login(ctx, validInput)
 
 		require.NoError(t, err)
 
@@ -138,18 +135,15 @@ func TestAuthService_Login(t *testing.T) {
 	t.Run("wrong password", func(t *testing.T) {
 		ctx := context.Background()
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(validInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
-
 		userRepo := &mocks.UserRepo{}
 
-		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gographqltwitter.User{Email: validInput.Email, Password: string(hashedPassword)}, nil)
+		userRepo.On("GetByEmail", mock.Anything, mock.Anything).Return(gographqltwitter.User{Email: validInput.Email, Password: faker.Password}, nil)
 
 		service := NewAuthService(userRepo)
 
 		validInput.Password = "wrong password "
 
-		_, err = service.Login(ctx, validInput)
+		_, err := service.Login(ctx, validInput)
 
 		require.ErrorIs(t, err, gographqltwitter.ErrBadCredentials)
 
@@ -165,7 +159,7 @@ func TestAuthService_Login(t *testing.T) {
 
 		service := NewAuthService(userRepo)
 
-		_, err := service.Login(ctx, validInput) 
+		_, err := service.Login(ctx, validInput)
 
 		require.ErrorIs(t, err, gographqltwitter.ErrBadCredentials)
 
@@ -181,7 +175,7 @@ func TestAuthService_Login(t *testing.T) {
 
 		service := NewAuthService(userRepo)
 
-		_, err := service.Login(ctx, validInput) 
+		_, err := service.Login(ctx, validInput)
 
 		require.Error(t, err)
 
@@ -195,7 +189,7 @@ func TestAuthService_Login(t *testing.T) {
 
 		service := NewAuthService(userRepo)
 
-		_, err := service.Login(ctx, gographqltwitter.LoginInput{Email: "bob", Password: ""}) 
+		_, err := service.Login(ctx, gographqltwitter.LoginInput{Email: "bob", Password: ""})
 
 		require.ErrorIs(t, err, gographqltwitter.ErrValidation)
 
