@@ -1,3 +1,3 @@
-module github.com/daniarmas/go-graphql-twitter
+module github.com/daniarmas/gographqltwitter
 
 go 1.19
