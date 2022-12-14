@@ -61,3 +61,30 @@ func (as *AuthService) Register(ctx context.Context, input gographqltwitter.Regi
 		User:        user,
 	}, nil
 }
+
+func (as *AuthService) Lgoin(ctx context.Context, input gographqltwitter.LoginInput) (gographqltwitter.AuthResponse, error) {
+	input.Sanitize()
+
+	if err := input.Validate(); err != nil {
+		return gographqltwitter.AuthResponse{}, err
+	}
+
+	user, err := as.UserRepo.GetByEmail(ctx, input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, gographqltwitter.ErrNotFound):
+			return gographqltwitter.AuthResponse{}, gographqltwitter.ErrBadCredentials
+		default:
+			return gographqltwitter.AuthResponse{}, err
+		}
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		return gographqltwitter.AuthResponse{}, gographqltwitter.ErrBadCredentials
+	}
+
+	return gographqltwitter.AuthResponse{
+		AccessToken: "a token",
+		User:        user,
+	}, nil
+}
