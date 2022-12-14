@@ -2,14 +2,21 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"path"
+	"runtime"
 
 	"github.com/daniarmas/gographqltwitter/config"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type DB struct {
 	Pool *pgxpool.Pool
+	conf *config.Config
 }
 
 func New(ctx context.Context, config *config.Config) *DB {
@@ -23,7 +30,7 @@ func New(ctx context.Context, config *config.Config) *DB {
 		log.Fatalf("error connecting to database: %v", err)
 	}
 
-	db := &DB{Pool: pool}
+	db := &DB{Pool: pool, conf: config}
 
 	db.Ping(ctx)
 
@@ -39,4 +46,20 @@ func (db *DB) Ping(ctx context.Context) {
 
 func (db *DB) Close(ctx context.Context) {
 	db.Pool.Close()
+}
+
+func (db *DB) Migrate() error {
+	_, b, _, _ := runtime.Caller(0)
+	migrationPath := fmt.Sprintf("file:///%s/migrations", path.Dir(b))
+	m, err := migrate.New(migrationPath, db.conf.Database.URL)
+	if err != nil {
+		return fmt.Errorf("error create the migration instance: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("error migrate up: %v", err)
+	}
+
+	log.Println("migration done")
+	return nil
 }
